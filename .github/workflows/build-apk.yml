@@ -34,11 +34,16 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Dependencies
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Smart Dependencies Installation
         run: |
           if [ -f "package-lock.json" ]; then
-            npm ci || npm install
+            echo "package-lock.json found. Trying npm ci..."
+            npm ci || { echo "npm ci failed due to lockfile mismatch. Falling back to npm install..."; npm install; }
           else
+            echo "No package-lock.json found. Running npm install..."
             npm install
           fi
 
@@ -48,14 +53,20 @@ jobs:
           VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: npm run build
 
-      - name: Sync Capacitor Android
-        run: npx cap sync android
+      - name: Ensure Android Platform and Sync
+        run: |
+          if [ ! -d "android" ]; then
+            echo "Android directory not found. Adding Android platform automatically..."
+            npx cap add android
+          fi
+          echo "Syncing Capacitor with Android platform..."
+          npx cap sync android
 
       - name: Build Android Debug APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
@@ -68,18 +79,18 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
-          name: "شركة الإسكندرية للمناشير - أحدث إصدار (Latest APK)"
+          name: "Latest APK"
           body: |
-            ## 📱 تحميل أحدث إصدار من تطبيق أندرويد (APK)
+            ## 📱 أحدث إصدار من تطبيق أندرويد (APK)
             
             - **اسم التطبيق:** شركة الإسكندرية للمناشير
             - **اسم الملف:** `app-debug.apk`
-            - **رابط التحميل الثابت:** يمكنك دائماً تنزيل أحدث نسخة من هذا الرابط.
+            - **رابط التحميل المباشر:** ثابت دائماً عبر هذا الإصدار.
             
             ### خطوات التثبيت:
-            1. اضغط على `app-debug.apk` أدناه للتحميل على هاتفك.
+            1. اضغط على `app-debug.apk` بالأسفل للتحميل على هاتفك.
             2. افتح الملف واضغط **تثبيت (Install)**.
-            3. إذا ظهر تنبيه أمني، فعّل **السماح من هذا المصدر (Allow from this source)**.
+            3. في حال ظهور تنبيه أمني، فعّل **السماح من هذا المصدر (Allow from this source)**.
           draft: false
           prerelease: false
           make_latest: true
