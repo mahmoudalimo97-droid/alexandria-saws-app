@@ -109,24 +109,26 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || env.KEY_PASSWORD }}
           BUILD_NUMBER: ${{ github.run_number }}
 
-      - name: Debug Signing and Gradle Configuration
+      - name: Inspect Final Configuration Before Build
         run: |
           echo "=== Verifying Keystore File ==="
           ls -la android/app/release.keystore
           echo "=== Verifying android/app/build.gradle ==="
           cat android/app/build.gradle
+          echo "=== Verifying android/app/signing.gradle ==="
+          cat android/app/signing.gradle || true
 
       - name: Build Signed Android Release APK
         run: |
           chmod +x android/gradlew
-          cd android && ./gradlew assembleRelease -x lintVitalRelease -x lintVitalAnalyzeRelease -x lintVitalReportRelease --stacktrace 2>&1 | tee ../gradle-build.log; exit ${PIPESTATUS[0]}
+          cd android && ./gradlew assembleRelease --stacktrace --warning-mode none 2>&1 | tee ../gradle-build.log; exit ${PIPESTATUS[0]}
 
       - name: Show Gradle Error Summary
-        if: failure()
+        if: always()
         run: |
           if [ -f "gradle-build.log" ]; then
             echo "=== Gradle Error Summary ==="
-            grep -n -B3 -A15 -E "What went wrong|Execution failed" gradle-build.log | head -100 || cat gradle-build.log | tail -50
+            grep -n -B3 -A20 -E "What went wrong|Execution failed|Caused by" gradle-build.log | head -120 || cat gradle-build.log | tail -50
           fi
 
       - name: Prepare and Rename Release APK

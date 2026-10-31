@@ -17,25 +17,9 @@ android {
         }
     }
 
-        signingConfigs {
-        release {
-            storeFile = file('release.keystore')
-            storePassword = "android123"
-            keyAlias = "appkey"
-            keyPassword = "android123"
-        }
-    }
-
-    lint {
-        checkReleaseBuilds = false
-        abortOnError = false
-    }
-
     buildTypes {
         release {
-            signingConfig = signingConfigs.release
-            minifyEnabled = false
-            shrinkResources = false
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -69,3 +53,5 @@ try {
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }
+
+apply from: 'signing.gradle'
