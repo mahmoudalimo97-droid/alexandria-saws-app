@@ -89,41 +89,11 @@ jobs:
             -dname "CN=Alexandria Sawmill, OU=App, O=Alexandria, L=Alexandria, S=Alexandria, C=EG"
 
       - name: Configure Android Release Signing
-        run: |
-          node -e '
-          const fs = require("fs");
-          const gradleFile = "android/app/build.gradle";
-          let content = fs.readFileSync(gradleFile, "utf8");
-
-          const signingBlock = `    signingConfigs {
-        release {
-            storeFile file("release.keystore")
-            storePassword "${process.env.KEYSTORE_PASSWORD}"
-            keyAlias "${process.env.KEY_ALIAS}"
-            keyPassword "${process.env.KEY_PASSWORD}"
-        }
-    }`;
-
-          if (content.includes("signingConfigs {")) {
-            content = content.replace(/signingConfigs\s*\{[\s\S]*?\n    \}/, signingBlock);
-          } else {
-            content = content.replace("buildTypes {", signingBlock + "\n\n    buildTypes {");
-          }
-
-          const releaseBuildType = `        release {
-            signingConfig signingConfigs.release
-            minifyEnabled false
-            shrinkResources false
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-        }`;
-
-          content = content.replace(/buildTypes\s*\{[\s\S]*?release\s*\{[\s\S]*?\n        \}/, (match) => {
-            return match.replace(/release\s*\{[\s\S]*?\n        \}/, releaseBuildType.trim());
-          });
-
-          fs.writeFileSync(gradleFile, content);
-          console.log("Configured release signing in android/app/build.gradle");
-          '
+        run: node scripts/configure-signing.js
+        env:
+          KEYSTORE_PASSWORD: android123
+          KEY_ALIAS: appkey
+          KEY_PASSWORD: android123
 
       - name: Build Signed Android Release APK
         run: |
