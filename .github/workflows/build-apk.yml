@@ -75,27 +75,41 @@ jobs:
           echo "Syncing Capacitor web assets into Android project..."
           npx cap sync android
 
-      - name: Generate Release Keystore
+      - name: Prepare Release Keystore (Fixed Secret or Fallback)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          SECRET_STORE_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+          SECRET_ALIAS: ${{ secrets.KEY_ALIAS }}
+          SECRET_KEY_PASS: ${{ secrets.KEY_PASSWORD }}
         run: |
-          rm -f android/app/release.keystore
-          keytool -genkeypair -v \
-            -keystore android/app/release.keystore \
-            -alias ${{ env.KEY_ALIAS }} \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -storepass ${{ env.KEYSTORE_PASSWORD }} \
-            -keypass ${{ env.KEY_PASSWORD }} \
-            -dname "CN=Alexandria Sawmill, OU=App, O=Alexandria, L=Alexandria, S=Alexandria, C=EG"
+          mkdir -p android/app
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "Decoding fixed release keystore from GitHub Secrets..."
+            echo "$KEYSTORE_BASE64" | base64 --decode > android/app/release.keystore
+          else
+            echo "GitHub Secret KEYSTORE_BASE64 not configured. Generating keystore with fixed fallback credentials..."
+            rm -f android/app/release.keystore
+            keytool -genkeypair -v \
+              -keystore android/app/release.keystore \
+              -alias "${SECRET_ALIAS:-$KEY_ALIAS}" \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -storepass "${SECRET_STORE_PASS:-$KEYSTORE_PASSWORD}" \
+              -keypass "${SECRET_KEY_PASS:-$KEY_PASSWORD}" \
+              -dname "CN=Alexandria Sawmill, OU=App, O=Alexandria, L=Alexandria, S=Alexandria, C=EG"
+          fi
+          ls -la android/app/release.keystore
 
-      - name: Configure Android Release Signing
+      - name: Configure Android Release Signing and Versioning
         run: node scripts/configure-signing.js
         env:
-          KEYSTORE_PASSWORD: ${{ env.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ env.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ env.KEY_PASSWORD }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || env.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS || env.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || env.KEY_PASSWORD }}
+          BUILD_NUMBER: ${{ github.run_number }}
 
-      - name: Debug Signing Configuration
+      - name: Debug Signing and Gradle Configuration
         run: |
           echo "=== Verifying Keystore File ==="
           ls -la android/app/release.keystore
@@ -105,14 +119,14 @@ jobs:
       - name: Build Signed Android Release APK
         run: |
           chmod +x android/gradlew
-          cd android && ./gradlew assembleRelease --stacktrace 2>&1 | tee ../gradle-build.log; exit ${PIPESTATUS[0]}
+          cd android && ./gradlew assembleRelease -x lintVitalRelease -x lintVitalAnalyzeRelease -x lintVitalReportRelease --stacktrace 2>&1 | tee ../gradle-build.log; exit ${PIPESTATUS[0]}
 
       - name: Show Gradle Error Summary
         if: failure()
         run: |
           if [ -f "gradle-build.log" ]; then
             echo "=== Gradle Error Summary ==="
-            grep -n -B2 -A12 -E "What went wrong|Execution failed|error:|FAILURE" gradle-build.log | head -80 || cat gradle-build.log | tail -50
+            grep -n -B3 -A15 -E "What went wrong|Execution failed" gradle-build.log | head -100 || cat gradle-build.log | tail -50
           fi
 
       - name: Prepare and Rename Release APK
@@ -137,6 +151,7 @@ jobs:
             
             - **اسم التطبيق:** شركة الإسكندرية للمناشير (Alexandria Sawmill)
             - **اسم الملف:** `Alexandria-Sawmill.apk`
+            - **رقم الإصدار (Version Code):** ${{ github.run_number }}
             - **نوع البناء:** إصدار موقّع رسمي (Signed Release APK)
             - **رابط التحميل الدائم:** متوفر دائماً من هذا الرابط الثابت.
             

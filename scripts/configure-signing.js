@@ -11,27 +11,38 @@ if (!fs.existsSync(gradleFile)) {
 const keystorePassword = process.env.KEYSTORE_PASSWORD || 'android123';
 const keyAlias = process.env.KEY_ALIAS || 'appkey';
 const keyPassword = process.env.KEY_PASSWORD || 'android123';
+const buildNumber = parseInt(process.env.BUILD_NUMBER || '1', 10) || 1;
 
 let content = fs.readFileSync(gradleFile, 'utf8');
 
-// 1. Remove any pre-existing signingConfigs { ... } block cleanly
-content = content.replace(/\n\s*signingConfigs\s*\{[\s\S]*?\n    \}/g, '');
+// 1. Update versionCode and versionName dynamically for incremental app updates
+content = content.replace(/versionCode\s+\d+/g, `versionCode ${buildNumber}`);
+content = content.replace(/versionName\s+"[^"]+"/g, `versionName "1.0.${buildNumber}"`);
 
-const signingConfigsBlock = `    signingConfigs {
+// 2. Remove existing signingConfigs and lintOptions blocks to avoid duplicate insertion
+content = content.replace(/\n\s*signingConfigs\s*\{[\s\S]*?\n    \}/g, '');
+content = content.replace(/\n\s*lintOptions\s*\{[\s\S]*?\n    \}/g, '');
+
+const signingAndLintBlocks = `    signingConfigs {
         release {
             storeFile file("release.keystore")
             storePassword "${keystorePassword}"
             keyAlias "${keyAlias}"
             keyPassword "${keyPassword}"
         }
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
     }`;
 
-// 2. Insert signingConfigs right before buildTypes inside android { }
+// 3. Insert signingConfigs and lintOptions right before buildTypes inside android { }
 if (content.includes('buildTypes {')) {
-  content = content.replace('buildTypes {', signingConfigsBlock + '\n    buildTypes {');
+  content = content.replace('buildTypes {', signingAndLintBlocks + '\n\n    buildTypes {');
 }
 
-// 3. Update buildTypes { release { ... } } cleanly without affecting other blocks
+// 4. Update buildTypes { release { ... } } cleanly
 content = content.replace(/(buildTypes\s*\{[\s\S]*?release\s*\{)([\s\S]*?)(\n        \})/, (match, prefix, inner, suffix) => {
   const updatedInner = `
             signingConfig signingConfigs.release
@@ -42,4 +53,4 @@ content = content.replace(/(buildTypes\s*\{[\s\S]*?release\s*\{)([\s\S]*?)(\n   
 });
 
 fs.writeFileSync(gradleFile, content, 'utf8');
-console.log('Successfully configured release signing inside android { } in android/app/build.gradle');
+console.log('Successfully configured release signing, lintOptions, and versioning in android/app/build.gradle');

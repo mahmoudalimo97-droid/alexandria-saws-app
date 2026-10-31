@@ -2,19 +2,23 @@
 	"appId": "com.alexandriasaws.app",
 	"appName": "شركة الإسكندرية للمناشير",
 	"webDir": "dist",
-	"backgroundColor": "#FFFFFF",
+	"backgroundColor": "#0B3A82",
 	"server": {
 		"androidScheme": "https",
 		"cleartext": true
 	},
 	"android": {
 		"allowMixedContent": true,
-		"backgroundColor": "#FFFFFF"
+		"backgroundColor": "#0B3A82"
 	},
 	"plugins": {
 		"StatusBar": {
 			"overlaysWebView": false,
 			"style": "DARK"
+		},
+		"SplashScreen": {
+			"launchShowDuration": 0,
+			"backgroundColor": "#0B3A82"
 		}
 	}
 }

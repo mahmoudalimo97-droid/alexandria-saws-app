@@ -134,7 +134,7 @@ export default function App() {
 
   return (
     /* Outer Viewport: Fills remaining space, locked to phone screen */
-    <div className="flex-1 w-full h-full min-h-0 bg-[#F0F2F5] dark:bg-[#07090B] flex items-center justify-center sm:p-4 md:py-6 overflow-hidden">
+    <div className="flex-1 w-full h-full min-h-0 bg-[#0B3A82] sm:bg-[#F0F2F5] sm:dark:bg-[#07090B] flex items-center justify-center sm:p-4 md:py-6 overflow-hidden">
       
       {/* Phone Screen Mockup Frame: Strictly contained, no bounce, inner scroll only */}
       <div 
