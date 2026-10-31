@@ -37,41 +37,60 @@ export function usePWAInstall() {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
-    // Register Service Worker with proper base URL scope
+    // Service Worker handling
     if ('serviceWorker' in navigator) {
-      const swUrl = `${import.meta.env.BASE_URL}sw.js`;
-      navigator.serviceWorker
-        .register(swUrl, { scope: import.meta.env.BASE_URL })
-        .then((registration) => {
-          // If a new worker is already waiting
-          if (registration.waiting) {
-            setWaitingWorker(registration.waiting);
-            setHasUpdate(true);
+      if (import.meta.env.DEV) {
+        // In local development / preview environment, unregister any service worker
+        // to prevent stale caching from masking recent code changes
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (const reg of registrations) {
+            reg.unregister();
           }
-
-          registration.addEventListener('updatefound', () => {
-            const newWorker = registration.installing;
-            if (newWorker) {
-              newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  setWaitingWorker(newWorker);
-                  setHasUpdate(true);
-                }
-              });
-            }
-          });
-        })
-        .catch((err) => {
-          console.warn('SW registration info:', err);
         });
-
-      let refreshing = false;
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!refreshing) {
-          refreshing = true;
-          window.location.reload();
+        if ('caches' in window) {
+          caches.keys().then((keys) => {
+            keys.forEach((key) => caches.delete(key));
+          });
         }
-      });
+      } else {
+        // In production (GitHub Pages or Android standalone), register PWA service worker
+        const swUrl = `${import.meta.env.BASE_URL}sw.js`;
+        navigator.serviceWorker
+          .register(swUrl, { scope: import.meta.env.BASE_URL })
+          .then((registration) => {
+            // Check for immediate update
+            registration.update().catch(() => {});
+
+            // If a new worker is already waiting
+            if (registration.waiting) {
+              setWaitingWorker(registration.waiting);
+              setHasUpdate(true);
+            }
+
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    setWaitingWorker(newWorker);
+                    setHasUpdate(true);
+                  }
+                });
+              }
+            });
+          })
+          .catch((err) => {
+            console.warn('SW registration info:', err);
+          });
+
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+          }
+        });
+      }
     }
 
     return () => {

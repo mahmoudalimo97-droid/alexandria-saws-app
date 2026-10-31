@@ -10,6 +10,7 @@ import { ThreeTabsNav, MainTabType } from './components/ThreeTabsNav';
 import { SearchBar } from './components/SearchBar';
 import { ProductCard } from './components/ProductCard';
 import { ProductModal } from './components/ProductModal';
+import { PhotosTab } from './components/PhotosTab';
 import { ServicesTab } from './components/ServicesTab';
 import { ContactSection } from './components/ContactSection';
 import { FloatingWhatsApp } from './components/FloatingWhatsApp';
@@ -25,8 +26,13 @@ import {
 import { Frown, ChevronDown } from 'lucide-react';
 
 export default function App() {
-  // Intro splash: user must click "عرض الأسعار" to enter
-  const [showIntro, setShowIntro] = useState<boolean>(true);
+  // Intro splash: user can enter prices or photos directly
+  const [showIntro, setShowIntro] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('alex_entered') !== 'true';
+    }
+    return true;
+  });
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Theme: dark / light
@@ -133,7 +139,19 @@ export default function App() {
         </div>
 
         {/* 1) Minimalist White Intro: stays inside the phone frame */}
-        {showIntro && <IntroSplash onEnter={() => setShowIntro(false)} />}
+        {showIntro && (
+          <IntroSplash
+            onEnter={(tab) => {
+              if (tab) {
+                setActiveMainTab(tab);
+              }
+              setShowIntro(false);
+              try {
+                sessionStorage.setItem('alex_entered', 'true');
+              } catch (_) {}
+            }}
+          />
+        )}
 
         {/* Offline Alert */}
         <OfflineBanner />
@@ -273,6 +291,18 @@ export default function App() {
           {/* ============================================================= */}
           {activeMainTab === 'services' && (
             <ServicesTab />
+          )}
+
+          {/* ============================================================= */}
+          {/* TAB 4: صور المعدات (Equipment Photos & Gallery) */}
+          {/* ============================================================= */}
+          {activeMainTab === 'photos' && (
+            <PhotosTab 
+              onGoToPrices={() => {
+                setActiveMainTab('prices');
+                scrollToTop();
+              }}
+            />
           )}
         </main>
 

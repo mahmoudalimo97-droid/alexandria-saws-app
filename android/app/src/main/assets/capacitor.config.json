@@ -1,0 +1,14 @@
+{
+	"appId": "com.alexandriasaws.app",
+	"appName": "Alexandria Saws",
+	"webDir": "dist",
+	"backgroundColor": "#FFFFFF",
+	"server": {
+		"androidScheme": "https",
+		"cleartext": true
+	},
+	"android": {
+		"allowMixedContent": true,
+		"backgroundColor": "#FFFFFF"
+	}
+}

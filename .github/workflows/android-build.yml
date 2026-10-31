@@ -1,0 +1,112 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths-ignore:
+      - 'README.md'
+      - '.gitignore'
+  release:
+    types: [published, created]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'نوع البناء (debug أو release)'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+          - debug
+          - release
+          - both
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    name: Build Android APK (Alexandria Saws)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Setup Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Build Web Application
+        run: npm run build
+
+      - name: Sync Capacitor Android
+        run: npx cap sync android
+
+      - name: Make Gradle Executable
+        run: chmod +x android/gradlew
+
+      - name: Build Debug APK
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon --stacktrace
+          cd ..
+
+      - name: Build & Sign Release APK (if Secrets Configured)
+        if: env.KEYSTORE_BASE64 != '' && env.KEYSTORE_PASSWORD != ''
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          echo "Decoding Keystore from GitHub Secrets..."
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/release.keystore
+          cd android
+          ./gradlew assembleRelease --no-daemon
+          cd ..
+
+      - name: Prepare APK Outputs
+        run: |
+          mkdir -p release-apk
+          if [ -f "android/app/build/outputs/apk/debug/app-debug.apk" ]; then
+            cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/Alexandria-Saws-debug.apk
+            echo "Copied debug APK successfully."
+          fi
+          if [ -f "android/app/build/outputs/apk/release/app-release-unsigned.apk" ]; then
+            cp android/app/build/outputs/apk/release/app-release-unsigned.apk release-apk/Alexandria-Saws-release-unsigned.apk
+          fi
+          if [ -f "android/app/build/outputs/apk/release/app-release.apk" ]; then
+            cp android/app/build/outputs/apk/release/app-release.apk release-apk/Alexandria-Saws-release.apk
+          fi
+          ls -lh release-apk/
+
+      - name: Upload APK Artifact (Download directly from GitHub Actions)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Alexandria-Saws-Android-APK
+          path: release-apk/*.apk
+          retention-days: 30
+
+      - name: Attach APK to GitHub Release (If Triggered by Release)
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-apk/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

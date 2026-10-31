@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Phone, MessageCircle, MapPin, Navigation, Copy, Check } from 'lucide-react';
+import { Phone, MessageCircle, MapPin, Navigation, Copy, Check, Camera, ExternalLink } from 'lucide-react';
 import { COMPANY_INFO } from '../data';
 
 export const ContactSection: React.FC = () => {
@@ -113,6 +113,31 @@ export const ContactSection: React.FC = () => {
             </a>
           ))}
         </div>
+      </div>
+
+      {/* 4) Photos Album Link */}
+      <div className="bg-white dark:bg-[#141414] rounded-[12px] border border-[#E5E5E5] dark:border-[#262626] p-4">
+        <a
+          href={COMPANY_INFO.facebookPhotosUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between text-[#0F3B4C] dark:text-[#7FB4C8] hover:underline"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-[8px] bg-[#E8F0F3] dark:bg-[#152730] flex items-center justify-center shrink-0">
+              <Camera className="w-4 h-4 stroke-[1.75]" />
+            </div>
+            <div className="text-right">
+              <div className="text-[13.5px] font-bold text-[#111111] dark:text-[#F2F2F2]">
+                ألبوم صور المعدات على فيسبوك
+              </div>
+              <div className="text-[11.5px] text-[#6B6B6B] dark:text-[#9E9E9E]">
+                شاهد صور الماكينات الحية والتسليمات المباشرة
+              </div>
+            </div>
+          </div>
+          <ExternalLink className="w-4 h-4 text-[#0F3B4C] dark:text-[#7FB4C8] shrink-0" />
+        </a>
       </div>
 
       {/* Slogan */}

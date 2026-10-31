@@ -54,6 +54,7 @@ export const COMPANY_INFO = {
   location: 'الإسكندرية – المندرة – بجوار قسم ثالث المنتزه',
   addressShort: 'الإسكندرية – المندرة',
   primaryPhone: '01229455338',
+  facebookPhotosUrl: 'https://www.facebook.com/ahmd.alamyr.834389/photos',
   phones: [
     { number: '01229455338', label: 'الرقم الرئيسي والواتساب', isPrimary: true },
     { number: '01005709766', label: 'مبيعات وحجوزات', isPrimary: false },
@@ -653,10 +654,31 @@ export const PRODUCTS: Product[] = [
 ];
 
 /**
- * شرائح الكاتلوج الرسمي (10 صفحات من الكاتلوج المطبوع)
- * لاستعراضها بالسلايد شو والتكبير السلس
+ * ============================================================================
+ * صور ومعرض معدات شركة الإسكندرية للمناشير
+ * ============================================================================
+ * 
+ * 📌 كيف تضيف صور جديدة لمعرض "صور المعدات"؟
+ * 1. ضع الصورة في مجلد public/images/ أو في أي سيرفر خارجي (رابط URL مباشر).
+ * 2. أضف عنصراً جديداً إلى مصفوفة CATALOG_SLIDES بالأسفل مع:
+ *    - page: رقم ترتيبي للصورة
+ *    - title: اسم الماكينة أو المنشار
+ *    - subtitle: تفاصيل الموديل (مثل: يدوي، أوتوماتيك، دبل هيد)
+ *    - image: المسار مثل '/images/my-saw.jpg' أو الرابط المباشر
+ *    - categoryTarget: القسم ('saws' للمناشير، 'mills' للفرايز، 'presses' للمكابس، 'welding' للحام، 'compressors' للكمبروسر)
+ *    - description: وصف موجز للماكينة
  */
-export const CATALOG_SLIDES = [
+export interface EquipmentPhoto {
+  page: number;
+  title: string;
+  subtitle: string;
+  image: string;
+  categoryTarget: 'all' | 'saws' | 'mills' | 'presses' | 'welding' | 'compressors' | 'contact';
+  subCategory?: string;
+  description?: string;
+}
+
+export const CATALOG_SLIDES: EquipmentPhoto[] = [
   {
     page: 1,
     title: 'الغلاف والترحيب',

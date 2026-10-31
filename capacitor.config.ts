@@ -1,0 +1,18 @@
+import type { CapacitorConfig } from '@capacitor/cli';
+
+const config: CapacitorConfig = {
+  appId: 'com.alexandriasaws.app',
+  appName: 'Alexandria Saws',
+  webDir: 'dist',
+  backgroundColor: '#FFFFFF',
+  server: {
+    androidScheme: 'https',
+    cleartext: true
+  },
+  android: {
+    allowMixedContent: true,
+    backgroundColor: '#FFFFFF'
+  }
+};
+
+export default config;
