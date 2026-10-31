@@ -19,38 +19,39 @@ let content = fs.readFileSync(gradleFile, 'utf8');
 content = content.replace(/versionCode\s+\d+/g, `versionCode ${buildNumber}`);
 content = content.replace(/versionName\s+"[^"]+"/g, `versionName "1.0.${buildNumber}"`);
 
-// 2. Remove existing signingConfigs and lintOptions blocks to avoid duplicate insertion
+// 2. Remove any pre-existing signingConfigs, lint, or legacy lintOptions blocks to avoid duplicate insertion
 content = content.replace(/\n\s*signingConfigs\s*\{[\s\S]*?\n    \}/g, '');
 content = content.replace(/\n\s*lintOptions\s*\{[\s\S]*?\n    \}/g, '');
+content = content.replace(/\n\s*lint\s*\{[\s\S]*?\n    \}/g, '');
 
 const signingAndLintBlocks = `    signingConfigs {
         release {
-            storeFile file("release.keystore")
-            storePassword "${keystorePassword}"
-            keyAlias "${keyAlias}"
-            keyPassword "${keyPassword}"
+            storeFile = file('release.keystore')
+            storePassword = "${keystorePassword}"
+            keyAlias = "${keyAlias}"
+            keyPassword = "${keyPassword}"
         }
     }
 
-    lintOptions {
-        checkReleaseBuilds false
-        abortOnError false
+    lint {
+        checkReleaseBuilds = false
+        abortOnError = false
     }`;
 
-// 3. Insert signingConfigs and lintOptions right before buildTypes inside android { }
+// 3. Insert signingConfigs and modern lint blocks right before buildTypes inside android { }
 if (content.includes('buildTypes {')) {
   content = content.replace('buildTypes {', signingAndLintBlocks + '\n\n    buildTypes {');
 }
 
-// 4. Update buildTypes { release { ... } } cleanly
+// 4. Update buildTypes { release { ... } } with assignment syntax (=)
 content = content.replace(/(buildTypes\s*\{[\s\S]*?release\s*\{)([\s\S]*?)(\n        \})/, (match, prefix, inner, suffix) => {
   const updatedInner = `
-            signingConfig signingConfigs.release
-            minifyEnabled false
-            shrinkResources false
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"`;
+            signingConfig = signingConfigs.release
+            minifyEnabled = false
+            shrinkResources = false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'`;
   return `${prefix}${updatedInner}${suffix}`;
 });
 
 fs.writeFileSync(gradleFile, content, 'utf8');
-console.log('Successfully configured release signing, lintOptions, and versioning in android/app/build.gradle');
+console.log('Successfully configured release signing, modern lint block, and versioning in android/app/build.gradle');

@@ -28,24 +28,7 @@ import {
 import { Frown, ChevronDown } from 'lucide-react';
 
 export default function App() {
-  // Configure Capacitor Status Bar for native mobile screens
-  useEffect(() => {
-    if (Capacitor.isNativePlatform()) {
-      StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
-      StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
-    }
-  }, []);
-
-  // Intro splash: user can enter prices or photos directly
-  const [showIntro, setShowIntro] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return sessionStorage.getItem('alex_entered') !== 'true';
-    }
-    return true;
-  });
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  // Theme: dark / light
+  // Theme: dark / light with persistent localStorage
   const [isDark, setIsDark] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('app_theme');
@@ -55,19 +38,44 @@ export default function App() {
     return false;
   });
 
-  const toggleDarkMode = () => {
-    setIsDark(prev => {
-      const next = !prev;
-      if (next) {
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('app_theme', 'dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        localStorage.setItem('app_theme', 'light');
+  // Apply dark mode class to document.documentElement and update StatusBar + meta theme
+  useEffect(() => {
+    const root = document.documentElement;
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
+
+    if (isDark) {
+      root.classList.add('dark');
+      localStorage.setItem('app_theme', 'dark');
+      if (themeMeta) themeMeta.setAttribute('content', '#0F172A');
+      if (Capacitor.isNativePlatform()) {
+        StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
+        StatusBar.setBackgroundColor({ color: '#0F172A' }).catch(() => {});
+        StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
       }
-      return next;
-    });
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('app_theme', 'light');
+      if (themeMeta) themeMeta.setAttribute('content', '#0B3A82');
+      if (Capacitor.isNativePlatform()) {
+        StatusBar.setStyle({ style: Style.Light }).catch(() => {});
+        StatusBar.setBackgroundColor({ color: '#0B3A82' }).catch(() => {});
+        StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
+      }
+    }
+  }, [isDark]);
+
+  const toggleDarkMode = () => {
+    setIsDark(prev => !prev);
   };
+
+  // Intro splash: user can enter prices or photos directly
+  const [showIntro, setShowIntro] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('alex_entered') !== 'true';
+    }
+    return true;
+  });
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // The 3 main tabs: 'prices' | 'contact' | 'services'
   const [activeMainTab, setActiveMainTab] = useState<MainTabType>('prices');
@@ -134,7 +142,7 @@ export default function App() {
 
   return (
     /* Outer Viewport: Fills remaining space, locked to phone screen */
-    <div className="flex-1 w-full h-full min-h-0 bg-[#0B3A82] sm:bg-[#F0F2F5] sm:dark:bg-[#07090B] flex items-center justify-center sm:p-4 md:py-6 overflow-hidden">
+    <div className="flex-1 w-full h-full min-h-0 bg-[#0B3A82] dark:bg-[#0F172A] sm:bg-[#F0F2F5] sm:dark:bg-[#07090B] flex items-center justify-center sm:p-4 md:py-6 overflow-hidden transition-colors">
       
       {/* Phone Screen Mockup Frame: Strictly contained, no bounce, inner scroll only */}
       <div 

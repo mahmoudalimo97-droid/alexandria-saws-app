@@ -19,7 +19,7 @@ export const IntroSplash: React.FC<IntroSplashProps> = ({ onEnter }) => {
         justifyContent: 'center',
         overflow: 'hidden'
       }}
-      className="fixed inset-0 z-50 bg-[#0B3A82] text-white p-4 sm:p-6 select-none box-border"
+      className="fixed inset-0 z-50 bg-[#0B3A82] dark:bg-[#0F172A] text-white p-4 sm:p-6 select-none box-border transition-colors"
     >
       <div className="w-full max-w-sm mx-auto text-center flex flex-col items-center justify-center my-auto">
         {/* Official Brand Logo */}
