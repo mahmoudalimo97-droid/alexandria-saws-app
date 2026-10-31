@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   build-apk:
-    name: Build Android APK (Debug)
+    name: Build Android APK
     runs-on: ubuntu-latest
 
     steps:
@@ -34,13 +34,18 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
       - name: Install Dependencies
-        run: npm ci || npm install
+        run: |
+          if [ -f "package-lock.json" ]; then
+            npm ci || npm install
+          else
+            npm install
+          fi
 
       - name: Build Web Application
+        env:
+          VITE_BASE: './'
+          VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: npm run build
 
       - name: Sync Capacitor Android
@@ -52,27 +57,27 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 
-      - name: Upload APK Artifact
+      - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
-      - name: Create or Update GitHub Release (Latest)
+      - name: Publish APK to GitHub Release (Latest)
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
-          name: "شركة الإسكندرية للمناشير - أحدث إصدار (Latest Release)"
+          name: "شركة الإسكندرية للمناشير - أحدث إصدار (Latest APK)"
           body: |
-            ## 📱 تحميل أحدث نسخة من تطبيق أندرويد (APK)
+            ## 📱 تحميل أحدث إصدار من تطبيق أندرويد (APK)
             
             - **اسم التطبيق:** شركة الإسكندرية للمناشير
             - **اسم الملف:** `app-debug.apk`
-            - **رابط التحميل المباشر الثابت:** دائماً من هذا الرابط الثابت.
+            - **رابط التحميل الثابت:** يمكنك دائماً تنزيل أحدث نسخة من هذا الرابط.
             
             ### خطوات التثبيت:
-            1. اضغط على `app-debug.apk` بالأسفل لتحميله على هاتفك.
+            1. اضغط على `app-debug.apk` أدناه للتحميل على هاتفك.
             2. افتح الملف واضغط **تثبيت (Install)**.
             3. إذا ظهر تنبيه أمني، فعّل **السماح من هذا المصدر (Allow from this source)**.
           draft: false
