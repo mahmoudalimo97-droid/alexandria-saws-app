@@ -14,7 +14,10 @@ const keyPassword = process.env.KEY_PASSWORD || 'android123';
 
 let content = fs.readFileSync(gradleFile, 'utf8');
 
-const signingBlock = `    signingConfigs {
+// 1. Remove any pre-existing signingConfigs { ... } block cleanly
+content = content.replace(/\n\s*signingConfigs\s*\{[\s\S]*?\n    \}/g, '');
+
+const signingConfigsBlock = `    signingConfigs {
         release {
             storeFile file("release.keystore")
             storePassword "${keystorePassword}"
@@ -23,22 +26,20 @@ const signingBlock = `    signingConfigs {
         }
     }`;
 
-if (content.includes('signingConfigs {')) {
-  content = content.replace(/signingConfigs\s*\{[\s\S]*?\n    \}/, signingBlock);
-} else {
-  content = content.replace('buildTypes {', signingBlock + '\n\n    buildTypes {');
+// 2. Insert signingConfigs right before buildTypes inside android { }
+if (content.includes('buildTypes {')) {
+  content = content.replace('buildTypes {', signingConfigsBlock + '\n    buildTypes {');
 }
 
-const releaseBuildType = `        release {
+// 3. Update buildTypes { release { ... } } cleanly without affecting other blocks
+content = content.replace(/(buildTypes\s*\{[\s\S]*?release\s*\{)([\s\S]*?)(\n        \})/, (match, prefix, inner, suffix) => {
+  const updatedInner = `
             signingConfig signingConfigs.release
             minifyEnabled false
             shrinkResources false
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-        }`;
-
-content = content.replace(/buildTypes\s*\{[\s\S]*?release\s*\{[\s\S]*?\n        \}/, (match) => {
-  return match.replace(/release\s*\{[\s\S]*?\n        \}/, releaseBuildType.trim());
+            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"`;
+  return `${prefix}${updatedInner}${suffix}`;
 });
 
 fs.writeFileSync(gradleFile, content, 'utf8');
-console.log('Successfully configured release signing in android/app/build.gradle');
+console.log('Successfully configured release signing inside android { } in android/app/build.gradle');

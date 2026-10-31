@@ -91,15 +91,29 @@ jobs:
       - name: Configure Android Release Signing
         run: node scripts/configure-signing.js
         env:
-          KEYSTORE_PASSWORD: android123
-          KEY_ALIAS: appkey
-          KEY_PASSWORD: android123
+          KEYSTORE_PASSWORD: ${{ env.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ env.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ env.KEY_PASSWORD }}
+
+      - name: Debug Signing Configuration
+        run: |
+          echo "=== Verifying Keystore File ==="
+          ls -la android/app/release.keystore
+          echo "=== Verifying android/app/build.gradle ==="
+          cat android/app/build.gradle
 
       - name: Build Signed Android Release APK
         run: |
           chmod +x android/gradlew
-          cd android
-          ./gradlew assembleRelease --no-daemon --stacktrace
+          cd android && ./gradlew assembleRelease --stacktrace 2>&1 | tee ../gradle-build.log; exit ${PIPESTATUS[0]}
+
+      - name: Show Gradle Error Summary
+        if: failure()
+        run: |
+          if [ -f "gradle-build.log" ]; then
+            echo "=== Gradle Error Summary ==="
+            grep -n -B2 -A12 -E "What went wrong|Execution failed|error:|FAILURE" gradle-build.log | head -80 || cat gradle-build.log | tail -50
+          fi
 
       - name: Prepare and Rename Release APK
         run: |
