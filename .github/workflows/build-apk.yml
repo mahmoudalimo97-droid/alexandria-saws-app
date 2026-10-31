@@ -42,9 +42,11 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Accept Android SDK Licenses
+      - name: Accept Android SDK Licenses and Install Platform 36
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          echo "Installing platforms;android-36 and build-tools;36.0.0..."
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" "build-tools;36.0.0" || true
 
       - name: Install Dependencies
         run: |
@@ -74,6 +76,12 @@ jobs:
           
           echo "Syncing Capacitor web assets into Android project..."
           npx cap sync android
+
+      - name: Update Compile and Target SDK to 36
+        run: |
+          echo "=== Updating android/variables.gradle to compileSdk & targetSdk 36 ==="
+          sed -i -E 's/compileSdkVersion *= *[0-9]+/compileSdkVersion = 36/; s/targetSdkVersion *= *[0-9]+/targetSdkVersion = 36/' android/variables.gradle
+          cat android/variables.gradle
 
       - name: Prepare Release Keystore (Fixed Secret or Fallback)
         env:
@@ -138,7 +146,7 @@ jobs:
             echo "=== Searching First Stack Trace Line ==="
             grep -n -m1 "at org.gradle" gradle-build.log || true
             FIRST_LINE=$(grep -n -m1 "at org.gradle" gradle-build.log | cut -d: -f1)
-            if [ -n "$FIRST_LINE" ] && [ "$FIRST_LINE" -gt 1 ]; then
+            if [ -n "$FIRST_LINE" ]; then
               START_LINE=$((FIRST_LINE > 40 ? FIRST_LINE - 40 : 1))
               echo "=== 40 Lines Before Stack Trace (Lines $START_LINE to $FIRST_LINE) ==="
               sed -n "${START_LINE},${FIRST_LINE}p" gradle-build.log
