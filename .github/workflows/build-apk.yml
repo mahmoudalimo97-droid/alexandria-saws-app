@@ -57,13 +57,20 @@ jobs:
           VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: npm run build
 
-      - name: Ensure Android Platform and Sync
+      - name: Fresh Android Platform Generation
         run: |
-          if [ ! -d "android" ]; then
-            echo "Android directory not found in repo. Adding Android platform automatically..."
-            npx cap add android
+          echo "Removing any legacy android directory to ensure 100% clean generation..."
+          rm -rf android
+          echo "Adding fresh Android platform using Capacitor 8 CLI..."
+          npx cap add android
+          
+          # Inject custom app icon if present in public folder
+          if [ -f "public/icon.png" ]; then
+            echo "Setting custom app icon for Android launcher..."
+            find android/app/src/main/res/ -name "ic_launcher*.png" -exec cp public/icon.png {} + || true
           fi
-          echo "Syncing Capacitor with Android platform..."
+          
+          echo "Syncing Capacitor web assets into Android project..."
           npx cap sync android
 
       - name: Build Android Debug APK
@@ -89,7 +96,7 @@ jobs:
             
             - **اسم التطبيق:** شركة الإسكندرية للمناشير
             - **اسم الملف:** `app-debug.apk`
-            - **رابط التحميل المباشر:** متوفر دائماً عبر هذا الإصدار.
+            - **رابط التحميل المباشر:** متوفر دائماً من هذا الإصدار.
             
             ### خطوات التثبيت:
             1. اضغط على `app-debug.apk` أدناه للتحميل على هاتفك.
