@@ -4,23 +4,24 @@ const config: CapacitorConfig = {
   appId: 'com.alexandriasaws.app',
   appName: 'شركة الإسكندرية للمناشير',
   webDir: 'dist',
-  backgroundColor: '#0B3A82',
+  backgroundColor: '#2F3437',
   server: {
     androidScheme: 'https',
     cleartext: true
   },
   android: {
     allowMixedContent: true,
-    backgroundColor: '#0B3A82'
+    backgroundColor: '#2F3437'
   },
   plugins: {
     StatusBar: {
-      overlaysWebView: false,
-      style: 'DARK'
+      backgroundColor: '#2F3437',
+      style: 'DARK',
+      overlaysWebView: false
     },
     SplashScreen: {
       launchShowDuration: 0,
-      backgroundColor: '#0B3A82'
+      backgroundColor: '#2F3437'
     }
   }
 };

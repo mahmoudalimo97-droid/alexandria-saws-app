@@ -46,19 +46,19 @@ export default function App() {
     if (isDark) {
       root.classList.add('dark');
       localStorage.setItem('app_theme', 'dark');
-      if (themeMeta) themeMeta.setAttribute('content', '#0F172A');
+      if (themeMeta) themeMeta.setAttribute('content', '#25292C');
       if (Capacitor.isNativePlatform()) {
         StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
-        StatusBar.setBackgroundColor({ color: '#0F172A' }).catch(() => {});
+        StatusBar.setBackgroundColor({ color: '#25292C' }).catch(() => {});
         StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
       }
     } else {
       root.classList.remove('dark');
       localStorage.setItem('app_theme', 'light');
-      if (themeMeta) themeMeta.setAttribute('content', '#0B3A82');
+      if (themeMeta) themeMeta.setAttribute('content', '#2F3437');
       if (Capacitor.isNativePlatform()) {
-        StatusBar.setStyle({ style: Style.Light }).catch(() => {});
-        StatusBar.setBackgroundColor({ color: '#0B3A82' }).catch(() => {});
+        StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
+        StatusBar.setBackgroundColor({ color: '#2F3437' }).catch(() => {});
         StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
       }
     }
@@ -142,7 +142,7 @@ export default function App() {
 
   return (
     /* Outer Viewport: Fills remaining space, locked to phone screen */
-    <div className="flex-1 w-full h-full min-h-0 bg-[#0B3A82] dark:bg-[#0F172A] sm:bg-[#F0F2F5] sm:dark:bg-[#07090B] flex items-center justify-center sm:p-4 md:py-6 overflow-hidden transition-colors">
+    <div className="flex-1 w-full h-full min-h-0 bg-[#2F3437] dark:bg-[#25292C] sm:bg-[#F0F2F5] sm:dark:bg-[#07090B] flex items-center justify-center sm:p-4 md:py-6 overflow-hidden transition-colors">
       
       {/* Phone Screen Mockup Frame: Strictly contained, no bounce, inner scroll only */}
       <div 
@@ -150,7 +150,7 @@ export default function App() {
         className="w-full max-w-[430px] h-full flex-1 min-h-0 sm:max-h-[92dvh] sm:h-[844px] bg-white dark:bg-[#0E0E0E] text-[#111111] dark:text-[#F2F2F2] sm:rounded-[38px] sm:border-[8px] sm:border-[#1E293B] dark:sm:border-[#2D3748] sm:shadow-2xl overflow-y-auto overscroll-contain overflow-x-hidden relative flex flex-col no-scrollbar transition-colors"
       >
         {/* Top Speaker / Dynamic Island on desktop frame */}
-        <div className="hidden sm:flex justify-center pt-2 pb-1 bg-white dark:bg-[#0E0E0E] shrink-0 sticky top-0 z-50 select-none">
+        <div className="hidden sm:flex justify-center pt-2 pb-1 bg-[#2F3437] dark:bg-[#25292C] shrink-0 sticky top-0 z-50 select-none transition-colors">
           <div className="w-24 h-3.5 bg-[#1E293B] dark:bg-[#2D3748] rounded-full flex items-center justify-center">
             <div className="w-2 h-2 rounded-full bg-black/40 mr-2"></div>
           </div>
@@ -338,13 +338,13 @@ export default function App() {
           }}
         />
 
-        {/* Clean Minimal Footer */}
-        <footer className="border-t border-[#E5E5E5] dark:border-[#262626] py-4 px-3 text-center shrink-0 mt-auto bg-white dark:bg-[#0E0E0E]">
-          <div className="w-full text-[12px] text-[#6B6B6B] dark:text-[#9E9E9E]">
-            <div className="font-bold text-[#111111] dark:text-[#F2F2F2] mb-0.5">
+        {/* Clean Minimal Footer: calm sawmill tone #2F3437 with light icons and text */}
+        <footer className="border-t border-black/15 dark:border-white/10 py-4 px-3 text-center shrink-0 mt-auto bg-[#2F3437] dark:bg-[#25292C] text-white transition-colors">
+          <div className="w-full text-[12px] text-white/80">
+            <div className="font-bold text-white mb-0.5">
               {COMPANY_INFO.name}
             </div>
-            <div className="font-mono dir-ltr">
+            <div className="font-mono dir-ltr text-white/90">
               {COMPANY_INFO.primaryPhone}
             </div>
           </div>
