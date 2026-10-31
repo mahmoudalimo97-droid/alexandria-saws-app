@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Alexandria Saws</string>
-    <string name="title_activity_main">Alexandria Saws</string>
+    <string name="app_name">شركة الإسكندرية للمناشير</string>
+    <string name="title_activity_main">شركة الإسكندرية للمناشير</string>
     <string name="package_name">com.alexandriasaws.app</string>
     <string name="custom_url_scheme">com.alexandriasaws.app</string>
 </resources>

@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.alexandriasaws.app',
-  appName: 'Alexandria Saws',
+  appName: 'شركة الإسكندرية للمناشير',
   webDir: 'dist',
   backgroundColor: '#FFFFFF',
   server: {
