@@ -1,6 +1,6 @@
 import React from 'react';
 import { Phone, MessageCircle, Moon, Sun } from 'lucide-react';
-import { COMPANY_INFO } from '../data';
+import { COMPANY_INFO, resolveAssetUrl } from '../data';
 
 interface HeaderProps {
   isDark: boolean;
@@ -21,9 +21,11 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={onNavigateHome}
           className="flex items-center gap-2 cursor-pointer select-none shrink-0"
         >
-          <div className="w-8 h-8 rounded-[8px] border border-[#E5E5E5] dark:border-[#262626] flex items-center justify-center text-[#0F3B4C] dark:text-[#7FB4C8] shrink-0">
-            <span className="text-[14px] font-bold">إ</span>
-          </div>
+          <img 
+            src={resolveAssetUrl('/icons/icon-192.png')} 
+            alt="شعار شركة الإسكندرية للمناشير" 
+            className="w-8 h-8 rounded-[8px] object-cover border border-[#E5E5E5] dark:border-[#262626] shrink-0 shadow-xs" 
+          />
           <div>
             <h1 className="text-[14px] font-bold leading-tight">
               شركة الإسكندرية

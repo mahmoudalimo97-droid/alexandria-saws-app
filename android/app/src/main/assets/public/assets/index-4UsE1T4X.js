@@ -13121,12 +13121,10 @@ var Header = ({ isDark, onToggleDark, onNavigateHome }) => {
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				onClick: onNavigateHome,
 				className: "flex items-center gap-2 cursor-pointer select-none shrink-0",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					className: "w-8 h-8 rounded-[8px] border border-[#E5E5E5] dark:border-[#262626] flex items-center justify-center text-[#0F3B4C] dark:text-[#7FB4C8] shrink-0",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-						className: "text-[14px] font-bold",
-						children: "إ"
-					})
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+					src: resolveAssetUrl("/icons/icon-192.png"),
+					alt: "شعار شركة الإسكندرية للمناشير",
+					className: "w-8 h-8 rounded-[8px] object-cover border border-[#E5E5E5] dark:border-[#262626] shrink-0 shadow-xs"
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
 					className: "text-[14px] font-bold leading-tight",
 					children: "شركة الإسكندرية"
@@ -13167,9 +13165,10 @@ var IntroSplash = ({ onEnter }) => {
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 			className: "w-full max-w-sm mx-auto text-center flex flex-col items-center",
 			children: [
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					className: "w-14 h-14 rounded-[12px] border border-[#E5E5E5] dark:border-[#262626] bg-[#FFFFFF] dark:bg-[#141414] flex items-center justify-center mb-6",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "w-6 h-6 rounded-full border-2 border-[#0F3B4C] dark:border-[#7FB4C8]" })
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+					src: resolveAssetUrl("/icons/icon-512.png"),
+					alt: "شعار شركة الإسكندرية للمناشير",
+					className: "w-24 h-24 rounded-[20px] shadow-lg mb-5 object-cover border border-[#E5E5E5] dark:border-[#262626]"
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
 					className: "text-[20px] font-bold leading-relaxed",
