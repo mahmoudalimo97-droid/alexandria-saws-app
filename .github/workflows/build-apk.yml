@@ -46,12 +46,10 @@ jobs:
       - name: Sync Capacitor Android
         run: npx cap sync android
 
-      - name: Grant Execute Permission for Gradlew
-        run: chmod +x android/gradlew
-
       - name: Build Android Debug APK
         run: |
           cd android
+          chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK Artifact
@@ -61,21 +59,25 @@ jobs:
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
-      - name: Create GitHub Release with APK
+      - name: Create or Update GitHub Release (Latest)
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.${{ github.run_number }}
-          name: "تطبيق شركة الإسكندرية للمناشير v1.0.${{ github.run_number }}"
+          tag_name: latest
+          name: "شركة الإسكندرية للمناشير - أحدث إصدار (Latest Release)"
           body: |
-            ## 📱 تحميل تطبيق أندرويد (APK) - شركة الإسكندرية للمناشير
+            ## 📱 تحميل أحدث نسخة من تطبيق أندرويد (APK)
             
-            تم بناء ملف التطبيق بنجاح ويمكنك تحميله وتثبيته مباشرة على الهاتف.
-            
+            - **اسم التطبيق:** شركة الإسكندرية للمناشير
             - **اسم الملف:** `app-debug.apk`
-            - **رقم البناء:** ${{ github.run_number }}
-            - **طريقة التثبيت:** قم بتحميل الملف وافتحه على هاتفك، ثم اضغط على «تثبيت» (Install).
+            - **رابط التحميل المباشر الثابت:** دائماً من هذا الرابط الثابت.
+            
+            ### خطوات التثبيت:
+            1. اضغط على `app-debug.apk` بالأسفل لتحميله على هاتفك.
+            2. افتح الملف واضغط **تثبيت (Install)**.
+            3. إذا ظهر تنبيه أمني، فعّل **السماح من هذا المصدر (Allow from this source)**.
           draft: false
           prerelease: false
+          make_latest: true
           files: |
             android/app/build/outputs/apk/debug/app-debug.apk
         env:
