@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Android Release APK
 
 on:
   push:
@@ -13,9 +13,14 @@ on:
 permissions:
   contents: write
 
+env:
+  KEYSTORE_PASSWORD: 'android123'
+  KEY_ALIAS: 'appkey'
+  KEY_PASSWORD: 'android123'
+
 jobs:
   build-apk:
-    name: Build Android APK
+    name: Build Signed Android Release APK
     runs-on: ubuntu-latest
 
     steps:
@@ -41,7 +46,7 @@ jobs:
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
-      - name: Smart Dependencies Installation
+      - name: Install Dependencies
         run: |
           if [ -f "package-lock.json" ]; then
             echo "Found package-lock.json. Running npm ci..."
@@ -57,55 +62,107 @@ jobs:
           VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: npm run build
 
-      - name: Fresh Android Platform Generation
+      - name: Ensure Android Platform and Assets
         run: |
-          echo "Removing any legacy android directory to ensure 100% clean generation..."
-          rm -rf android
-          echo "Adding fresh Android platform using Capacitor 8 CLI..."
-          npx cap add android
-          
-          # Inject custom app icon if present in public folder
-          if [ -f "public/icon.png" ]; then
-            echo "Setting custom app icon for Android launcher..."
-            find android/app/src/main/res/ -name "ic_launcher*.png" -exec cp public/icon.png {} + || true
+          if [ ! -d "android" ]; then
+            echo "Android directory not found. Adding Android platform..."
+            npx cap add android
           fi
+          
+          echo "Generating Android adaptive icons from resources/ using @capacitor/assets..."
+          npx @capacitor/assets generate --android --iconBackgroundColor '#0B3A82' --iconBackgroundColorDark '#0B3A82'
           
           echo "Syncing Capacitor web assets into Android project..."
           npx cap sync android
 
-      - name: Build Android Debug APK
+      - name: Generate Release Keystore
+        run: |
+          rm -f android/app/release.keystore
+          keytool -genkeypair -v \
+            -keystore android/app/release.keystore \
+            -alias ${{ env.KEY_ALIAS }} \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass ${{ env.KEYSTORE_PASSWORD }} \
+            -keypass ${{ env.KEY_PASSWORD }} \
+            -dname "CN=Alexandria Sawmill, OU=App, O=Alexandria, L=Alexandria, S=Alexandria, C=EG"
+
+      - name: Configure Android Release Signing
+        run: |
+          node -e '
+          const fs = require("fs");
+          const gradleFile = "android/app/build.gradle";
+          let content = fs.readFileSync(gradleFile, "utf8");
+
+          const signingBlock = `    signingConfigs {
+        release {
+            storeFile file("release.keystore")
+            storePassword "${process.env.KEYSTORE_PASSWORD}"
+            keyAlias "${process.env.KEY_ALIAS}"
+            keyPassword "${process.env.KEY_PASSWORD}"
+        }
+    }`;
+
+          if (content.includes("signingConfigs {")) {
+            content = content.replace(/signingConfigs\s*\{[\s\S]*?\n    \}/, signingBlock);
+          } else {
+            content = content.replace("buildTypes {", signingBlock + "\n\n    buildTypes {");
+          }
+
+          const releaseBuildType = `        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+        }`;
+
+          content = content.replace(/buildTypes\s*\{[\s\S]*?release\s*\{[\s\S]*?\n        \}/, (match) => {
+            return match.replace(/release\s*\{[\s\S]*?\n        \}/, releaseBuildType.trim());
+          });
+
+          fs.writeFileSync(gradleFile, content);
+          console.log("Configured release signing in android/app/build.gradle");
+          '
+
+      - name: Build Signed Android Release APK
         run: |
           chmod +x android/gradlew
           cd android
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Prepare and Rename Release APK
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk Alexandria-Sawmill.apk
+          ls -lh Alexandria-Sawmill.apk
 
       - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: Alexandria-Sawmill-APK
+          path: Alexandria-Sawmill.apk
           retention-days: 30
 
-      - name: Publish APK to GitHub Release (Latest)
+      - name: Publish Signed APK to GitHub Release (Latest)
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
-          name: "Latest APK"
+          name: "Latest Release (Signed APK)"
           body: |
-            ## 📱 أحدث إصدار من تطبيق أندرويد (APK)
+            ## 📱 تحميل تطبيق أندرويد الرسمي الموقّع (Signed Release APK)
             
-            - **اسم التطبيق:** شركة الإسكندرية للمناشير
-            - **اسم الملف:** `app-debug.apk`
-            - **رابط التحميل المباشر:** متوفر دائماً من هذا الإصدار.
+            - **اسم التطبيق:** شركة الإسكندرية للمناشير (Alexandria Sawmill)
+            - **اسم الملف:** `Alexandria-Sawmill.apk`
+            - **نوع البناء:** إصدار موقّع رسمي (Signed Release APK)
+            - **رابط التحميل الدائم:** متوفر دائماً من هذا الرابط الثابت.
             
             ### خطوات التثبيت:
-            1. اضغط على `app-debug.apk` أدناه للتحميل على هاتفك.
+            1. اضغط على `Alexandria-Sawmill.apk` أدناه للتحميل على هاتفك.
             2. افتح الملف واضغط **تثبيت (Install)**.
             3. إذا ظهر تنبيه أمني، فعّل **السماح من هذا المصدر (Allow from this source)**.
           draft: false
           prerelease: false
           make_latest: true
-          files: |
-            android/app/build/outputs/apk/debug/app-debug.apk
+          files: Alexandria-Sawmill.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

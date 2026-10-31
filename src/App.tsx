@@ -3,7 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { Capacitor } from '@capacitor/core';
 import { Header } from './components/Header';
 import { IntroSplash } from './components/IntroSplash';
 import { ThreeTabsNav, MainTabType } from './components/ThreeTabsNav';
@@ -26,6 +28,14 @@ import {
 import { Frown, ChevronDown } from 'lucide-react';
 
 export default function App() {
+  // Configure Capacitor Status Bar for native mobile screens
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
+      StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
+    }
+  }, []);
+
   // Intro splash: user can enter prices or photos directly
   const [showIntro, setShowIntro] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -123,13 +133,13 @@ export default function App() {
   };
 
   return (
-    /* Outer Viewport: Centers and frames the phone screen on all devices */
-    <div className="min-h-screen bg-[#F0F2F5] dark:bg-[#07090B] flex items-center justify-center sm:p-4 md:py-6 overflow-x-hidden">
+    /* Outer Viewport: Fills remaining space, locked to phone screen */
+    <div className="flex-1 w-full h-full min-h-0 bg-[#F0F2F5] dark:bg-[#07090B] flex items-center justify-center sm:p-4 md:py-6 overflow-hidden">
       
-      {/* Phone Screen Mockup Frame: Strictly contained, no horizontal overflow or jumping */}
+      {/* Phone Screen Mockup Frame: Strictly contained, no bounce, inner scroll only */}
       <div 
         ref={scrollContainerRef}
-        className="w-full max-w-[430px] min-h-screen sm:min-h-[844px] sm:max-h-[92vh] sm:h-[844px] bg-white dark:bg-[#0E0E0E] text-[#111111] dark:text-[#F2F2F2] sm:rounded-[38px] sm:border-[8px] sm:border-[#1E293B] dark:sm:border-[#2D3748] sm:shadow-2xl overflow-y-auto overflow-x-hidden relative flex flex-col no-scrollbar transition-colors"
+        className="w-full max-w-[430px] h-full flex-1 min-h-0 sm:max-h-[92dvh] sm:h-[844px] bg-white dark:bg-[#0E0E0E] text-[#111111] dark:text-[#F2F2F2] sm:rounded-[38px] sm:border-[8px] sm:border-[#1E293B] dark:sm:border-[#2D3748] sm:shadow-2xl overflow-y-auto overscroll-contain overflow-x-hidden relative flex flex-col no-scrollbar transition-colors"
       >
         {/* Top Speaker / Dynamic Island on desktop frame */}
         <div className="hidden sm:flex justify-center pt-2 pb-1 bg-white dark:bg-[#0E0E0E] shrink-0 sticky top-0 z-50 select-none">

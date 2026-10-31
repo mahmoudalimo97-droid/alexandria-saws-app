@@ -172,11 +172,11 @@ export const SlideShowModal: React.FC<SlideShowModalProps> = ({
         <div className="w-full max-w-lg h-full flex items-center justify-center">
           {mode === 'booklet' ? (
             <div className="w-full max-h-full flex flex-col items-center justify-center">
-              <div className="rounded-[12px] overflow-hidden border border-[#262626] bg-[#141414] max-h-[70vh] flex items-center justify-center">
+              <div className="rounded-[12px] overflow-hidden border border-[#262626] bg-[#141414] max-h-[70dvh] flex items-center justify-center">
                 <img
                   src={resolveAssetUrl(currentBookletSlide.image)}
                   alt={currentBookletSlide.title}
-                  className="w-auto h-auto max-h-[68vh] object-contain"
+                  className="w-auto h-auto max-h-[68dvh] object-contain"
                 />
               </div>
 

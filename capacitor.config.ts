@@ -12,6 +12,12 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: true,
     backgroundColor: '#FFFFFF'
+  },
+  plugins: {
+    StatusBar: {
+      overlaysWebView: false,
+      style: 'DARK'
+    }
   }
 };
 

@@ -492,7 +492,7 @@ export const PhotosTab: React.FC<PhotosTabProps> = ({ onGoToPrices }) => {
               <img
                 src={resolveAssetUrl(currentPhoto.image)}
                 alt={currentPhoto.title}
-                className="max-h-[68vh] max-w-[92vw] sm:max-w-[420px] object-contain rounded-[10px] shadow-2xl"
+                className="max-h-[68dvh] max-w-[92vw] sm:max-w-[420px] object-contain rounded-[10px] shadow-2xl"
               />
             </div>
 

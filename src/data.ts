@@ -585,12 +585,12 @@ export const PRODUCTS: Product[] = [
     id: 'weld-sonmez',
     name: 'ماكينة لحام سونميز',
     category: 'welding',
-    newPrice: 127500,
+    newPrice: 110000,
     oldPrice: 135000,
     hot: false,
     image: '',
     description: 'ماكينة سونميز التركية الأصلية، دقة زاوية اللحام 90 درجة مع تسخين متجانس على كامل المقطع.',
-    features: ['توفير 7,500 ج', 'صناعة تركية أصلية', 'سخان مطلي بتفلون عالي الجودة']
+    features: ['توفير 25,000 ج', 'صناعة تركية أصلية', 'سخان مطلي بتفلون عالي الجودة']
   },
   {
     id: 'weld-bsm-turkish',
