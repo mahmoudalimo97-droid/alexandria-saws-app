@@ -128,7 +128,21 @@ jobs:
         run: |
           if [ -f "gradle-build.log" ]; then
             echo "=== Gradle Error Summary ==="
-            grep -n -B3 -A20 -E "What went wrong|Execution failed|Caused by" gradle-build.log | head -120 || cat gradle-build.log | tail -50
+            grep -n -B3 -A20 -E "What went wrong|Execution failed|Caused by|error:|e: " gradle-build.log | head -120 || true
+          fi
+
+      - name: Print Context Before Stack Trace
+        if: always()
+        run: |
+          if [ -f "gradle-build.log" ]; then
+            echo "=== Searching First Stack Trace Line ==="
+            grep -n -m1 "at org.gradle" gradle-build.log || true
+            FIRST_LINE=$(grep -n -m1 "at org.gradle" gradle-build.log | cut -d: -f1)
+            if [ -n "$FIRST_LINE" ] && [ "$FIRST_LINE" -gt 1 ]; then
+              START_LINE=$((FIRST_LINE > 40 ? FIRST_LINE - 40 : 1))
+              echo "=== 40 Lines Before Stack Trace (Lines $START_LINE to $FIRST_LINE) ==="
+              sed -n "${START_LINE},${FIRST_LINE}p" gradle-build.log
+            fi
           fi
 
       - name: Prepare and Rename Release APK
